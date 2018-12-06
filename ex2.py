@@ -33,7 +33,7 @@ def get_all_events(f_lines):
 
 
 def main(args):
-    total_events = 300,000
+    total_events = "300000"
     if len(args) == 5:
         devl_filename = args[1]
         test_filename = args[2]
@@ -51,9 +51,8 @@ def main(args):
     write_to_output(str(total_events))
 
     f_lines = process_input_file_into_lines(devl_filename)
-    events  = get_all_events(f_lines)
-    # write_to_output()
-
+    events = get_all_events(f_lines)
+    write_to_output(str(events.count(input_word) / float(total_events)))
 
 
 if __name__ == "__main__":
