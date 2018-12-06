@@ -1,6 +1,6 @@
 # Moshe Samson <your name> 312297492 <your id>
 import sys
-lines_counter = 0
+lines_counter = 1
 
 
 def create_output_file(filename):
@@ -53,6 +53,8 @@ def main(args):
     f_lines = process_input_file_into_lines(devl_filename)
     events = get_all_events(f_lines)
     write_to_output('%f' % (events.count(input_word) / float(total_events)))
+    write_to_output(str(len(set(events))))
+
 
 
 if __name__ == "__main__":
