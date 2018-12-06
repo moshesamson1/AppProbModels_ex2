@@ -40,6 +40,7 @@ def split_set(content, split_amount, total_count):
     '''
     assert split_amount > 1 or split_amount <= 0, "split_set parameter split_amount is out of range"
     train_size = math.round(split_amount * split_amount)
+    # TODO: CHECK if val and train sets are needed as array or as numbers
     train_set, val_set = [], []
     train_counter, train_fr, val_counter = dict(), dict(), dict()
 
