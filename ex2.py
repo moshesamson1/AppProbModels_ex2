@@ -52,7 +52,7 @@ def main(args):
 
     f_lines = process_input_file_into_lines(devl_filename)
     events = get_all_events(f_lines)
-    write_to_output(str(events.count(input_word) / float(total_events)))
+    write_to_output('%f' % (events.count(input_word) / float(total_events)))
 
 
 if __name__ == "__main__":
