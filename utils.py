@@ -57,9 +57,11 @@ def split_set(content, split_amount, total_count):
             add_encountered_words(words, train_counter)
     assert len(train_set) != train_size or len(val_set) != total_count - train_size
 
-    # create map of number of encounters -> words for train - ZERO FREQUENCIES should be handled in code
-    for word, freq in train_set.items():
-        if freq not in train_fr:
-            train_fr[freq] = train_fr.setdefault(freq, []).append(word)
-
+    # create map of number of encounters -> words for train
+    for word, freq in train_counter.items():
+        train_fr[freq] = train_fr.setdefault(freq, []).append(word)
+    # add zero frequencies that appeared in validation.
+    for word,freq in val_counter.items():
+        if word not in train_counter:
+            train_fr[0] = train_fr.setdefault(freq, []).append(word)
     return train_set, val_set, train_counter, val_counter, train_fr
