@@ -1,0 +1,44 @@
+import utils as ul
+import math
+
+
+class HeldOut:
+    def __init__(self, dev_file, voc_size):
+        voc, total_count, articles_content = ul.pre_process_set(dev_file)
+        self.train_set, self.val_set, self.train_counter, self.val_counter, self.train_fr = ul.split_set(
+            articles_content, 0.5, total_count)
+        self.VOC_SIZE = voc_size
+
+    def calc_ho_probability(self, word, fed_frequency=None):
+        if fed_frequency is None:
+            w_fr = 0 if word not in self.train_counter else self.train_counter[word]
+        else:
+            w_fr = fed_frequency
+        # words with w's frequency if it's 0: |V| - all the words we did encounter during training
+        word_with_w_fr = self.VOC_SIZE - len(self.train_counter) if w_fr == 0 else len(self.train_fr[w_fr])
+        nominator = self.calc_ho_nominator(w_fr)
+        return nominator / (word_with_w_fr * len(self.val_set))
+
+    def calc_ho_nominator(self, w_fr):
+        # if w's frequency is 0: all the words we did not see during training and did see during val contribute to the sum
+        return sum([self.val_counter.get(w, 0) for w in self.train_fr[w_fr]])
+
+    def calc_perplexity(self, test_file):
+        voc, total_count, articles_content = ul.pre_process_set(test_file)
+        sum=0
+        for w in voc.keys():
+            word_probability = self.calc_ho_probability(w)
+            if word_probability > 0:
+                sum += math.log(word_probability, 2)
+        return sum/total_count
+
+
+# def check_proba_correctness(dev_file, test_file, input_word, voc_size):
+#
+#     ho = HeldOut(dev_file, voc_size)
+#     unseen_proba = ho.calc_ho_probability(input_word, 0)
+#     #RT SANITY CHECK
+#     proba_sum = 0
+#     for w in ho.train_counter.keys():
+#         proba_sum += ho.calc_ho_probability(w)
+#     to_check = (unseen_proba * (ho.VOC_SIZE - len(ho.train_counter)) + proba_sum)
