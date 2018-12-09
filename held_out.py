@@ -52,7 +52,7 @@ class HeldOut:
             word_probability = self.calc_ho_probability(w)
             if word_probability > 0:
                 sum += math.log(word_probability, 2) * voc[w]
-        return (-sum / total_count) ** 2
+        return 2 ** (-sum / total_count)
 
 
 def check_proba_correctness(dev_file, input_word, voc_size):
