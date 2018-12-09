@@ -75,6 +75,7 @@ def handle_heldout(dev_file, input_word, voc_size):
         f_ho.append(ho_inst.calc_ho_probability("", r))
         t_r.append(ho_inst.calc_ho_nominator(r))
         n_t_r.append(len(ho_inst.train_fr.get(r, 0)))
+    n_t_r[0] = VOC_SIZE - len(ho_inst.train_counter)
 
     # write outputs - should start from out 21
     write_to_output(str(len(ho_inst.train_set)))

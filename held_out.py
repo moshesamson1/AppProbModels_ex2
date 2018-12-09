@@ -1,7 +1,6 @@
 import utils as ul
 import math
 
-
 class HeldOut:
     def __init__(self, dev_file, voc_size):
         '''
@@ -48,20 +47,19 @@ class HeldOut:
         :return: calculated perplexity
         '''
         voc, total_count, articles_content = ul.pre_process_set(test_file)
-        sum=0
+        sum = 0
         for w in voc.keys():
             word_probability = self.calc_ho_probability(w)
             if word_probability > 0:
-                sum += math.log(word_probability, 2)
-        return sum/total_count
+                sum += math.log(word_probability, 2) * voc[w]
+        return (-sum / total_count) ** 2
 
 
-# def check_proba_correctness(dev_file, test_file, input_word, voc_size):
-#
-#     ho = HeldOut(dev_file, voc_size)
-#     unseen_proba = ho.calc_ho_probability(input_word, 0)
-#     #RT SANITY CHECK
-#     proba_sum = 0
-#     for w in ho.train_counter.keys():
-#         proba_sum += ho.calc_ho_probability(w)
-#     to_check = (unseen_proba * (ho.VOC_SIZE - len(ho.train_counter)) + proba_sum)
+def check_proba_correctness(dev_file, input_word, voc_size):
+    ho = HeldOut(dev_file, voc_size)
+    unseen_proba = ho.calc_ho_probability(input_word, 0)
+    # RT SANITY CHECK
+    proba_sum = 0
+    for w in ho.train_counter.keys():
+        proba_sum += ho.calc_ho_probability(w)
+    to_check = (unseen_proba * (ho.VOC_SIZE - len(ho.train_counter)) + proba_sum)
