@@ -23,4 +23,6 @@ class Lidstone:
     def get_training_set(self):
         return self.train_set
 
-
+    def get_mle_training(self, input_word):
+        # compute mle
+        return self.get_training_set().count(input_word) / float(len(self.get_training_set()))

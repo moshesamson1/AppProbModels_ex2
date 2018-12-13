@@ -111,6 +111,8 @@ def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
     write_to_output(str(lid.get_training_set_size()))
     write_to_output(str(len(set(lid.get_training_set()))))
     write_to_output(str(lid.get_training_set().count(input_word)))
+    write_to_output(str(lid.get_mle_training(input_word)))
+    write_to_output(str(lid.get_mle_training("unseen-word")))
 
 
 
