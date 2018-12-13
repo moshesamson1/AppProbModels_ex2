@@ -2,6 +2,7 @@
 import sys
 import held_out as ho
 import utils as ul
+import math
 from Lidstone import *
 
 lines_counter = 1
@@ -40,7 +41,7 @@ def get_all_events(f_lines):
     # return d
 
 
-def handle_perplexity(ho_inst, lid, test_fiename):
+def handle_perplexity(ho_inst, lid_inst, test_fiename):
     """
     outputs perplexity of each model and then outputs to file the best model
     :param ho_inst:
@@ -49,9 +50,24 @@ def handle_perplexity(ho_inst, lid, test_fiename):
     :return:
     """
     # TODO: FILL LIDSTONE PARTS
-    # lid_perp = write_to_output(LID PERPLEXITY)
-    ho_perp = write_to_output(str(ho_inst.calc_perplexity(test_fiename)))
+    # write_to_output(str(calc_perplexity(test_fiename, lid_inst.calc_lid_probability)))
+    write_to_output(str(calc_perplexity(test_fiename, ho_inst.calc_ho_probability)))
     # write_to_output('L' if lid_perp > ho_perp else 'H')
+
+
+def calc_perplexity(test_file, proba_func):
+    '''
+    Calculates models perplexity over test set
+    :param test_file:
+    :return: calculated perplexity
+    '''
+    voc, total_count, articles_content = ul.pre_process_set(test_file)
+    sum = 0
+    for w in voc.keys():
+        word_probability = proba_func(w)
+        if word_probability > 0:
+            sum += math.log(word_probability, 2) * voc[w]
+    return 2 ** (-sum / total_count)
 
 
 def generate_table(f_ho, n_t_r, t_r):
@@ -92,9 +108,7 @@ def handle_heldout(dev_file, input_word, voc_size):
 def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
     lid = Lidstone(devl_filename, VOC_SIZE)
     write_to_output(str(lid.get_validation_set_size()))
-    write_to_output(str(lid.get_training_set_size()))
-    write_to_output(str(len(set(lid.get_training_set()))))
-    write_to_output(str(lid.get_training_set().count(input_word)))
+    write_to_output(str(lid.get_validation_set_size()))
 
 
 def main(args):
@@ -122,21 +136,21 @@ def main(args):
     write_to_output(str(len(events)))
 
     # Lidstone model
-    handle_Lidstone(events, input_word, VOC_SIZE)
-
+    #handle_Lidstone(devl_filename, input_word, VOC_SIZE)
+    #
     # held out outs
-    ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
-
-    # test output
-    voc, total_count, articles_content = ul.pre_process_set(test_filename)
-    write_to_output(str(total_count))
+    #ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
+    #
+    # # test output
+    # voc, total_count, articles_content = ul.pre_process_set(test_filename)
+    # write_to_output(str(total_count))
 
 
 
     # TODO: UNCOMMENT THIS AFTER LIDSTONE FILL
-    # handle_perplexity(ho_inst,LID, test_filename)
+    #handle_perplexity(ho_inst,lid_inst, test_filename)
 
-    generate_table(f_ho, n_t_r, t_r)
+    #generate_table(f_ho, n_t_r, t_r)
 
 
 if __name__ == "__main__":
