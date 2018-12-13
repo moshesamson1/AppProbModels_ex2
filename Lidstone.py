@@ -25,4 +25,11 @@ class Lidstone:
 
     def get_mle_training(self, input_word):
         # compute mle
-        return self.get_training_set().count(input_word) / float(len(self.get_training_set()))
+        return self.get_training_set().count(input_word) / float(self.get_training_set_size())
+
+    def get_possible_training_events(self):
+        return set(self.train_set)
+
+    def get_lidstone_training(self, input_word, gamma):
+        return float(self.get_training_set().count(input_word) + gamma) /\
+               float(self.get_training_set_size() + gamma*len(self.get_possible_training_events()))

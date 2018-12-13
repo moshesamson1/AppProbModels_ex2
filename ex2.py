@@ -107,12 +107,14 @@ def handle_heldout(dev_file, input_word, voc_size):
 
 def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
     lid = Lidstone(devl_filename, VOC_SIZE)
-    write_to_output(str(lid.get_validation_set_size()))
-    write_to_output(str(lid.get_training_set_size()))
-    write_to_output(str(len(set(lid.get_training_set()))))
-    write_to_output(str(lid.get_training_set().count(input_word)))
-    write_to_output(str(lid.get_mle_training(input_word)))
-    write_to_output(str(lid.get_mle_training("unseen-word")))
+    write_to_output(str(lid.get_validation_set_size()))  # output 9
+    write_to_output(str(lid.get_training_set_size()))  # output 10
+    write_to_output(str(len(lid.get_possible_training_events())))  # output 11
+    write_to_output(str(lid.get_training_set().count(input_word)))  # output 12
+    write_to_output(str(lid.get_mle_training(input_word)))  # output 13
+    write_to_output(str(lid.get_mle_training("unseen-word")))  # output 14
+    write_to_output(str(lid.get_lidstone_training(input_word, 0.10)))  # output 14
+    write_to_output(str(lid.get_lidstone_training("unseen-word", 0.10)))  # output 15
 
 
 
@@ -129,15 +131,15 @@ def main(args):
         exit(-1)
 
     create_output_file(output_filename)
-    write_to_output(devl_filename)
-    write_to_output(test_filename)
-    write_to_output(input_word)
-    write_to_output(output_filename)
-    write_to_output(str(VOC_SIZE))
+    write_to_output(devl_filename)  # output 1
+    write_to_output(test_filename)  # output 12
+    write_to_output(input_word)  # output 13
+    write_to_output(output_filename)  # output 4
+    write_to_output(str(VOC_SIZE))  # output 5
 
     f_lines = process_input_file_into_lines(devl_filename)
     events = get_all_events(f_lines)
-    write_to_output('%f' % (events.count(input_word) / float(VOC_SIZE)))
+    write_to_output(str(events.count(input_word) / float(VOC_SIZE)))  # output 6
     write_to_output(str(len(events)))
 
     # Lidstone model
