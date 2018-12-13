@@ -2,10 +2,12 @@
 import sys
 import held_out as ho
 import utils as ul
+from Lidstone import *
 
 lines_counter = 1
 VOC_SIZE = 300000
 output_filename = ""
+
 
 def create_output_file(filename):
     f = open(filename, "w")
@@ -25,12 +27,14 @@ def write_to_output(line):
 def process_input_file_into_lines(filename):
     f = open(filename, 'r')
     f_lines = f.readlines()
-    return_lines = [line for line in f_lines if (not (line.startswith('<')) and len(line) > 2)]
+    # get every third row
+    return_lines = f_lines[1::2]
+    # return_lines = [line for line in f_lines if (not (line.startswith('<')) and len(line) > 2)]
     return return_lines
 
 
 def get_all_events(f_lines):
-    flat_items = [word for line in f_lines for word in line.split(" ")]
+    flat_items = [word for line in f_lines for word in line.split(" ") if word != '\r\r\n']
     return flat_items
     # d = {key: flat_items.count(key) for key in set_items}
     # return d
@@ -85,6 +89,12 @@ def handle_heldout(dev_file, input_word, voc_size):
     return ho_inst, f_ho, n_t_r, t_r
 
 
+def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
+    lid = Lidstone(devl_filename, VOC_SIZE)
+    write_to_output(str(lid.get_validation_set_size()))
+    write_to_output(str(lid.get_validation_set_size()))
+
+
 def main(args):
     global output_filename
     # total_events = "300000"
@@ -109,12 +119,17 @@ def main(args):
     write_to_output('%f' % (events.count(input_word) / float(VOC_SIZE)))
     write_to_output(str(len(events)))
 
-    # held out outs
-    ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
+    # Lidstone model
+    handle_Lidstone(devl_filename, input_word, VOC_SIZE)
+    #
+    # # held out outs
+    # ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
+    #
+    # # test output
+    # voc, total_count, articles_content = ul.pre_process_set(test_filename)
+    # write_to_output(str(total_count))
 
-    # test output
-    voc, total_count, articles_content = ul.pre_process_set(test_filename)
-    write_to_output(str(total_count))
+
 
     # TODO: UNCOMMENT THIS AFTER LIDSTONE FILL
     # handle_perplexity(ho_inst,LID, test_filename)
