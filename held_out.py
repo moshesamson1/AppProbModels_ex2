@@ -1,6 +1,7 @@
 import utils as ul
 import math
 
+
 class HeldOut:
     def __init__(self, dev_file, voc_size):
         '''

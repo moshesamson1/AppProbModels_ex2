@@ -108,7 +108,10 @@ def handle_heldout(dev_file, input_word, voc_size):
 def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
     lid = Lidstone(devl_filename, VOC_SIZE)
     write_to_output(str(lid.get_validation_set_size()))
-    write_to_output(str(lid.get_validation_set_size()))
+    write_to_output(str(lid.get_training_set_size()))
+    write_to_output(str(len(set(lid.get_training_set()))))
+    write_to_output(str(lid.get_training_set().count(input_word)))
+
 
 
 def main(args):
@@ -136,10 +139,10 @@ def main(args):
     write_to_output(str(len(events)))
 
     # Lidstone model
-    #handle_Lidstone(devl_filename, input_word, VOC_SIZE)
+    handle_Lidstone(events, input_word, VOC_SIZE)
     #
     # held out outs
-    #ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
+    # ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
     #
     # # test output
     # voc, total_count, articles_content = ul.pre_process_set(test_filename)
