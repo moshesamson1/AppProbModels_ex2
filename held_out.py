@@ -40,20 +40,6 @@ class HeldOut:
         # if w's frequency is 0: all the words we did not see during training and did see during val contribute to the sum
         return sum([self.val_counter.get(w, 0) for w in self.train_fr[w_fr]])
 
-    def calc_perplexity(self, test_file):
-        '''
-        Calculates models perplexity over test set
-        :param test_file:
-        :return: calculated perplexity
-        '''
-        voc, total_count, articles_content = ul.pre_process_set(test_file)
-        sum = 0
-        for w in voc.keys():
-            word_probability = self.calc_ho_probability(w)
-            if word_probability > 0:
-                sum += math.log(word_probability, 2) * voc[w]
-        return 2 ** (-sum / total_count)
-
 
 def check_proba_correctness(dev_file, input_word, voc_size):
     ho = HeldOut(dev_file, voc_size)
