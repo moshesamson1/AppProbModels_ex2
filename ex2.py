@@ -64,7 +64,7 @@ def calc_perplexity_Lidstone(proba_func, words, gamma):
     return math.pow(2,(-sum / len(words)))
 
 
-def calc_perplexity(test_file, proba_func,gamma=None, events=None):
+def calc_perplexity(test_file, proba_func):
     '''
     Calculates models perplexity over test set
     :param test_file:
@@ -72,9 +72,9 @@ def calc_perplexity(test_file, proba_func,gamma=None, events=None):
     '''
     voc, total_count, articles_content = ul.pre_process_set(test_file)
     sum = 0
-    words = voc.keys() if gamma==None else events
+    words = voc.keys()
     for w in words:
-        word_probability = proba_func(w) if gamma==None else proba_func(w,gamma)
+        word_probability = proba_func(w)
         if word_probability > 0:
             sum += math.log(word_probability, 2) * voc[w]
     return 2 ** (-sum / total_count)
