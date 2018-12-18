@@ -36,7 +36,10 @@ class HeldOut:
         Calculates t_r - nominator in the probability formula
         Calculates the sum of held out(validation) frequencies for all the words with w_fr frequency in training set
         :param w_fr: frequency to calculate
-        :return: calculated nominator
+        :return: calculated nominator+972 54-532-4961
+בנימין פרנקל
+ב- output 7 יצא לי 415149 (אחד יותר ממה שיצא לכולם). למישהו יש רעיון למה זה קורה לי?
+כתבתי למחרוזת רק שורות שלא מתחילות ב- <TRAIN
         '''
         # if w's frequency is 0: all the words we did not see during training and did see during val contribute to the sum
         return sum([self.val_counter.get(w, 0) for w in self.train_fr[w_fr]])

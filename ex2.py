@@ -5,6 +5,7 @@ import utils as ul
 import math
 from Lidstone import *
 import re
+import numpy as np
 
 lines_counter = 1
 VOC_SIZE = 300000
@@ -54,7 +55,16 @@ def handle_perplexity(ho_inst, lid_inst, test_fiename):
     # write_to_output('L' if lid_perp > ho_perp else 'H')
 
 
-def calc_perplexity(test_file, proba_func,gamma=None):
+def calc_perplexity_Lidstone(proba_func, words, gamma):
+    sum = 0
+    for w in words:
+        word_probability = proba_func(w,gamma)
+        if word_probability > 0:
+            sum += math.log2(word_probability)
+    return math.pow(2,(-sum / len(words)))
+
+
+def calc_perplexity(test_file, proba_func,gamma=None, events=None):
     '''
     Calculates models perplexity over test set
     :param test_file:
@@ -62,7 +72,8 @@ def calc_perplexity(test_file, proba_func,gamma=None):
     '''
     voc, total_count, articles_content = ul.pre_process_set(test_file)
     sum = 0
-    for w in voc.keys():
+    words = voc.keys() if gamma==None else events
+    for w in words:
         word_probability = proba_func(w) if gamma==None else proba_func(w,gamma)
         if word_probability > 0:
             sum += math.log(word_probability, 2) * voc[w]
@@ -104,6 +115,22 @@ def handle_heldout(dev_file, input_word, voc_size):
     return ho_inst, f_ho, n_t_r, t_r
 
 
+def get_perplexity_gamma_argmin(devel_lid, low, high, resolution=0.01):
+    '''
+    return arg min gamma of perplexity in range 0-2
+    :param devel_lid: THe Lidstone model
+    :param filename:
+    :param low:
+    :param high:
+    :param resolution:
+    :return:
+    '''
+    gamma_values = np.arange(low,high,resolution)
+    results = [(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), gamma),gamma) for gamma in gamma_values]
+    sort_by_perplexity = sorted(results, key=lambda tup: tup[0])
+    return sort_by_perplexity[0][1]
+
+
 def handle_Lidstone(devl_filename, test_filename, input_word, VOC_SIZE):
     devel_f_lines = process_input_file_into_lines(devl_filename)
     devel_events = get_all_events(devel_f_lines)
@@ -120,13 +147,14 @@ def handle_Lidstone(devl_filename, test_filename, input_word, VOC_SIZE):
     write_to_output(str(devel_lid.get_training_set().count(input_word)))  # output 11
     write_to_output(str(devel_lid.get_mle_training(input_word)))  # output 12
     write_to_output(str(devel_lid.get_mle_training("unseen-word")))  # output 13
-    write_to_output(str(devel_lid.calc_lid_probability(input_word, 0.10)))  # output 14
-    write_to_output(str(devel_lid.calc_lid_probability("unseen-word", 0.10)))  # output 15
-    write_to_output(str(calc_perplexity(test_filename, devel_lid.calc_lid_probability, 0.01)))  # output 16
-    write_to_output(str(calc_perplexity(test_filename, devel_lid.calc_lid_probability, 0.10)))  # output 17
-    write_to_output(str(calc_perplexity(test_filename, devel_lid.calc_lid_probability, 1.00)))  # output 18
-    write_to_output("")
-    write_to_output("")
+    write_to_output(str(devel_lid.calc_lid_probability_training(input_word, 0.10)))  # output 14
+    write_to_output(str(devel_lid.calc_lid_probability_training("unseen-word", 0.10)))  # output 15
+    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), 0.01)))  # output 16
+    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), 0.10)))  # output 17
+    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), 1.00)))  # output 18
+    argmin_gamma = get_perplexity_gamma_argmin(devel_lid, 0, 2, 0.01)
+    write_to_output(str(argmin_gamma))  # output 19
+    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), argmin_gamma)))  # output 20
 
 
 
@@ -158,18 +186,18 @@ def main(args):
     handle_Lidstone(devl_filename, test_filename, input_word, VOC_SIZE)
 
     # held out outs
-    ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
+    # ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
+    # #
+    # # # test output
+    # voc, total_count, articles_content = ul.pre_process_set(test_filename)
+    # write_to_output(str(total_count))
     #
-    # # test output
-    voc, total_count, articles_content = ul.pre_process_set(test_filename)
-    write_to_output(str(total_count))
-
-
-
-    # TODO: UNCOMMENT THIS AFTER LIDSTONE FILL
-    handle_perplexity(ho_inst, None, test_filename)
-
-    generate_table(f_ho, n_t_r, t_r)
+    #
+    #
+    # # TODO: UNCOMMENT THIS AFTER LIDSTONE FILL
+    # handle_perplexity(ho_inst, None, test_filename)
+    #
+    # generate_table(f_ho, n_t_r, t_r)
 
 
 if __name__ == "__main__":

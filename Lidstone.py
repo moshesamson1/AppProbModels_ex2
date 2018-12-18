@@ -21,6 +21,9 @@ class Lidstone:
     def get_validation_set_size(self):
         return len(self.val_set)
 
+    def get_validation_set(self):
+        return self.val_set
+
     def get_training_set_size(self):
         return len(self.train_set)
 
@@ -35,6 +38,6 @@ class Lidstone:
         return set(self.train_set)
 
 
-    def calc_lid_probability(self, input_word, gamma):
+    def calc_lid_probability_training(self, input_word, gamma):
         return float(self.get_training_set().count(input_word) + gamma ) /\
                float(self.get_training_set_size() + gamma * self.get_possible_events_amount())
