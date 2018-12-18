@@ -49,19 +49,22 @@ def handle_perplexity(ho_inst, lid_inst, test_fiename):
     :param test_fiename:
     :return:
     """
-    # TODO: FILL LIDSTONE PARTS
-    # write_to_output(str(calc_perplexity(test_fiename, lid_inst.calc_lid_probability)))
-    write_to_output(str(calc_perplexity(test_fiename, ho_inst.calc_ho_probability)))
-    # write_to_output('L' if lid_perp > ho_perp else 'H')
+    f_lines = process_input_file_into_lines(test_fiename)
+    events = get_all_events(f_lines)
+    lid_perp = calc_perplexity_Lidstone(lid_inst.calc_lid_probability_training, events, lid_inst.get_argmin_gamma())
+    ho_perp = calc_perplexity(test_fiename, ho_inst.calc_ho_probability)
+    write_to_output(str(lid_perp))
+    write_to_output(str(ho_perp))
+    write_to_output('L' if lid_perp > ho_perp else 'H')
 
 
 def calc_perplexity_Lidstone(proba_func, words, gamma):
     sum = 0
     for w in words:
-        word_probability = proba_func(w,gamma)
+        word_probability = proba_func(w, gamma)
         if word_probability > 0:
             sum += math.log2(word_probability)
-    return math.pow(2,(-sum / len(words)))
+    return math.pow(2, (-sum / len(words)))
 
 
 def calc_perplexity(test_file, proba_func):
@@ -84,7 +87,7 @@ def generate_table(f_ho, n_t_r, t_r):
     out = ""
     for r in range(10):
         # TODO: FILL LIDSTONE PARTS and use the first str
-        #out += f"\n\t{r}\t{lid_array[r]}\t{f_ho[r]:.5f}\t{n_t_r[r]}\t{t_r[r]}"
+        # out += f"\n\t{r}\t{lid_array[r]}\t{f_ho[r]:.5f}\t{n_t_r[r]}\t{t_r[r]}"
         out += "\n\t{0}\t{1}\t{2:.5f}\t{3}\t{4}".format(r, "LID", f_ho[r], n_t_r[r], t_r[r])
     write_to_output(out)
 
@@ -125,21 +128,18 @@ def get_perplexity_gamma_argmin(devel_lid, low, high, resolution=0.01):
     :param resolution:
     :return:
     '''
-    gamma_values = np.arange(low,high,resolution)
-    results = [(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), gamma),gamma) for gamma in gamma_values]
+    gamma_values = np.arange(low, high, resolution)
+    results = [(
+               calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), gamma),
+               gamma) for gamma in gamma_values]
     sort_by_perplexity = sorted(results, key=lambda tup: tup[0])
     return sort_by_perplexity[0][1]
 
 
-def handle_Lidstone(devl_filename, test_filename, input_word, VOC_SIZE):
+def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
     devel_f_lines = process_input_file_into_lines(devl_filename)
     devel_events = get_all_events(devel_f_lines)
-
-    test_f_lines = process_input_file_into_lines(test_filename)
-    test_events = get_all_events(test_f_lines)
-
     devel_lid = Lidstone(devel_events, VOC_SIZE)
-    test_lid = Lidstone(test_events, VOC_SIZE)
 
     write_to_output(str(devel_lid.get_validation_set_size()))  # output 8
     write_to_output(str(devel_lid.get_training_set_size()))  # output 9
@@ -149,14 +149,24 @@ def handle_Lidstone(devl_filename, test_filename, input_word, VOC_SIZE):
     write_to_output(str(devel_lid.get_mle_training("unseen-word")))  # output 13
     write_to_output(str(devel_lid.calc_lid_probability_training(input_word, 0.10)))  # output 14
     write_to_output(str(devel_lid.calc_lid_probability_training("unseen-word", 0.10)))  # output 15
-    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), 0.01)))  # output 16
-    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), 0.10)))  # output 17
-    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), 1.00)))  # output 18
+    write_to_output(str(
+        calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(),
+                                 0.01)))  # output 16
+    write_to_output(str(
+        calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(),
+                                 0.10)))  # output 17
+    write_to_output(str(
+        calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(),
+                                 1.00)))  # output 18
     argmin_gamma = get_perplexity_gamma_argmin(devel_lid, 0, 2, 0.01)
+    devel_lid.argmin_gamma = argmin_gamma
     write_to_output(str(argmin_gamma))  # output 19
-    write_to_output(str(calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(), argmin_gamma)))  # output 20
+    write_to_output(str(
+        calc_perplexity_Lidstone(devel_lid.calc_lid_probability_training, devel_lid.get_validation_set(),
+                                 argmin_gamma)))  # output 20
 
 
+    return devel_lid
 
 def main(args):
     global output_filename
@@ -180,24 +190,20 @@ def main(args):
     f_lines = process_input_file_into_lines(devl_filename)
     events = get_all_events(f_lines)
     write_to_output('%f' % (list(set(events)).count(input_word) / float(VOC_SIZE)))  # output 6
-    write_to_output(str(len(events))) # output 7
+    write_to_output(str(len(events)))  # output 7
 
     # Lidstone model
-    handle_Lidstone(devl_filename, test_filename, input_word, VOC_SIZE)
+    lid_model = handle_Lidstone(devl_filename, input_word, VOC_SIZE)
 
     # held out outs
-    # ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
-    # #
-    # # # test output
-    # voc, total_count, articles_content = ul.pre_process_set(test_filename)
-    # write_to_output(str(total_count))
+    ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
     #
+    # # test output
+    voc, total_count, articles_content = ul.pre_process_set(test_filename)
+    write_to_output(str(total_count))
+    handle_perplexity(ho_inst, lid_model, test_filename)
     #
-    #
-    # # TODO: UNCOMMENT THIS AFTER LIDSTONE FILL
-    # handle_perplexity(ho_inst, None, test_filename)
-    #
-    # generate_table(f_ho, n_t_r, t_r)
+    generate_table(f_ho, n_t_r, t_r)
 
 
 if __name__ == "__main__":
