@@ -14,7 +14,7 @@ class Lidstone:
         self.train_set = events[0:train_size]
         self.val_set = events[train_size:]
         self.voc_size = voc_size
-        self.argmin_gamma = -1
+        self.argmin_lamda = -1
         self.dic_train = ul.list_to_dictionary(self.train_set)
         self.training_set_size = len(self.train_set)
 
@@ -40,10 +40,9 @@ class Lidstone:
     def get_training_events(self):
         return set(self.train_set)
 
-    def get_argmin_gamma(self):
-        return self.argmin_gamma
+    def get_argmin_lamda(self):
+        return self.argmin_lamda
 
-    def calc_lid_probability_training(self, input_word, gamma):
-        c = self.dic_train[input_word] if input_word in self.dic_train.keys() else 0
-        return float(c + gamma ) /\
-               float(self.training_set_size + gamma * self.get_possible_events_amount())
+    def calc_lid_probability_training(self, input_word, lamda):
+        return float(self.dic_train.get(input_word,0) + lamda) / \
+               float(self.training_set_size + lamda * self.get_possible_events_amount())
