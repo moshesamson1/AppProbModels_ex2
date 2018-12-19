@@ -13,12 +13,22 @@ class Lidstone:
         train_size = int(0.9*len(events))
         self.train_set = events[0:train_size]
         self.val_set = events[train_size:]
+        self.voc_size = voc_size
+        self.argmin_lamda = -1
+        self.dic_train = ul.list_to_dictionary(self.train_set)
+        self.training_set_size = len(self.train_set)
+
+    def get_possible_events_amount(self):
+        return self.voc_size
 
     def get_validation_set_size(self):
         return len(self.val_set)
 
+    def get_validation_set(self):
+        return self.val_set
+
     def get_training_set_size(self):
-        return len(self.train_set)
+        return self.training_set_size
 
     def get_training_set(self):
         return self.train_set
@@ -27,9 +37,12 @@ class Lidstone:
         # compute mle
         return self.get_training_set().count(input_word) / float(self.get_training_set_size())
 
-    def get_possible_training_events(self):
+    def get_training_events(self):
         return set(self.train_set)
 
-    def get_lidstone_training(self, input_word, gamma):
-        return float(self.get_training_set().count(input_word) + gamma) /\
-               float(self.get_training_set_size() + gamma*len(self.get_possible_training_events()))
+    def get_argmin_lamda(self):
+        return self.argmin_lamda
+
+    def calc_lid_probability_training(self, input_word, lamda):
+        return float(self.dic_train.get(input_word,0) + lamda) / \
+               float(self.training_set_size + lamda * self.get_possible_events_amount())

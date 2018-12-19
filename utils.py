@@ -69,3 +69,11 @@ def split_set(content, split_amount, total_count):
         if word not in train_counter:
             train_fr[0].append(word)
     return train_set, val_set, train_counter, val_counter, train_fr
+
+
+def list_to_dictionary(my_list):
+    voc = dict()
+
+    for element in my_list:
+        voc[element] = voc.setdefault(element, 0) + 1
+    return voc
