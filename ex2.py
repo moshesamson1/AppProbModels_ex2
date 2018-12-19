@@ -41,7 +41,7 @@ def get_all_events(f_lines):
     return flat_items
 
 
-def handle_perplexity(ho_inst, lid_inst, test_filename):
+def handle_perplexity(test_voc, test_total_events, ho_inst, lid_inst):
     """
     outputs perplexity of each model and then outputs to file the best model
     :param ho_inst:
@@ -49,29 +49,16 @@ def handle_perplexity(ho_inst, lid_inst, test_filename):
     :param test_fiename:
     :return:
     """
-    voc, total_count, articles_content = ul.pre_process_set(test_filename)
-    lid_perp = calc_perplexity(voc, total_count,
-                                        lid_inst.calc_lid_probability_training,
-                                        lid_inst.get_argmin_lamda())
-    ho_perp = calc_perplexity(voc, total_count, ho_inst.calc_ho_probability)
+    lid_perp = calc_perplexity(test_voc, test_total_events,
+                               lid_inst.calc_lid_probability_training,
+                               lid_inst.get_argmin_lamda())
+    ho_perp = calc_perplexity(test_voc, test_total_events, ho_inst.calc_ho_probability)
     write_to_output(str(lid_perp))
     write_to_output(str(ho_perp))
     write_to_output('L' if lid_perp > ho_perp else 'H')
 
 
-# def calc_perplexity_Lidstone(proba_func, words_dict, total_count, gamma):
-#
-#     sum = 0
-#     for w in words_dict.keys():
-#         word_probability = proba_func(w, gamma)
-#         if word_probability > 0:
-#             sum += math.log2(word_probability) * words_dict[w]
-#     ret = math.pow(2, (-sum / total_count))
-#     # print("calc_perplexity_Lidstone " + str(gamma) + "-> " + str(ret)),
-#     return ret
-
-
-def calc_perplexity(voc,total_count, proba_func, lamda = None):
+def calc_perplexity(voc, total_count, proba_func, lamda=None):
     '''
     Calculates models perplexity over test set
     :param test_file:
@@ -114,16 +101,16 @@ def handle_heldout(dev_file, input_word, voc_size):
     n_t_r[0] = VOC_SIZE - len(ho_inst.train_counter)
 
     # write outputs - should start from out 21
-    write_to_output(str(len(ho_inst.train_set)))
-    write_to_output(str(len(ho_inst.val_set)))
-    write_to_output(str(ho_inst.calc_ho_probability(input_word)))
-    write_to_output(str(ho_inst.calc_ho_probability("", 0)))
+    write_to_output(str(len(ho_inst.train_set)))  # output 21
+    write_to_output(str(len(ho_inst.val_set)))  # output 22
+    write_to_output(str(ho_inst.calc_ho_probability(input_word)))  # output 23
+    write_to_output(str(ho_inst.calc_ho_probability("unseen-word")))  # output 24
     return ho_inst, f_ho, n_t_r, t_r
 
 
-def get_perplexity_gamma_argmin(devel_lid, dic, low, high, resolution=0.01):
+def get_perplexity_lamda_argmin(devel_lid, dic, low, high, resolution=0.01):
     '''
-    return arg min gamma of perplexity in range 0-2
+    return arg min lamda of perplexity in range 0-2
     :param devel_lid: THe Lidstone model
     :param filename:
     :param low:
@@ -133,8 +120,8 @@ def get_perplexity_gamma_argmin(devel_lid, dic, low, high, resolution=0.01):
     '''
     lamda_values = np.arange(low, high, resolution)
     results = [(
-               calc_perplexity(dic, devel_lid.get_validation_set_size(), devel_lid.calc_lid_probability_training, lamda),
-               lamda) for lamda in lamda_values]
+        calc_perplexity(dic, devel_lid.get_validation_set_size(), devel_lid.calc_lid_probability_training, lamda),
+        lamda) for lamda in lamda_values]
     sort_by_perplexity = sorted(results, key=lambda tup: tup[0])
     return sort_by_perplexity[0][1]
 
@@ -153,26 +140,25 @@ def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
     write_to_output(str(devel_lid.calc_lid_probability_training(input_word, 0.10)))  # output 14
     write_to_output(str(devel_lid.calc_lid_probability_training("unseen-word", 0.10)))  # output 15
 
-    dic =ul.list_to_dictionary(devel_lid.get_validation_set())
-    write_to_output(str(calc_perplexity(dic,devel_lid.get_validation_set_size(),devel_lid.calc_lid_probability_training,
-                                                 0.01)))
+    dic = ul.list_to_dictionary(devel_lid.get_validation_set())
+    write_to_output(
+        str(calc_perplexity(dic, devel_lid.get_validation_set_size(), devel_lid.calc_lid_probability_training,
+                            0.01)))
 
     write_to_output(
         str(calc_perplexity(dic, devel_lid.get_validation_set_size(), devel_lid.calc_lid_probability_training,
-                                                 0.10)))
+                            0.10)))
     write_to_output(
         str(calc_perplexity(dic, devel_lid.get_validation_set_size(), devel_lid.calc_lid_probability_training,
-                                                 1.00)))
-    argmin_gamma = get_perplexity_gamma_argmin(devel_lid, dic, 0.01, 2.00, 0.01)
-    devel_lid.argmin_lamda = argmin_gamma
-    write_to_output(str(argmin_gamma))  # output 19
+                            1.00)))
+    argmin_lamda = get_perplexity_lamda_argmin(devel_lid, dic, 0.01, 2.00, 0.01)
+    devel_lid.argmin_lamda = argmin_lamda
+    write_to_output(str(argmin_lamda))  # output 19
     write_to_output(
         str(calc_perplexity(dic, devel_lid.get_validation_set_size(), devel_lid.calc_lid_probability_training,
-                                 argmin_gamma)))  # output 20
-
-
-    print("finished handle lidtone")
+                            argmin_lamda)))  # output 20
     return devel_lid
+
 
 def main(args):
     global output_filename
@@ -207,7 +193,7 @@ def main(args):
     # # test output
     voc, total_count, articles_content = ul.pre_process_set(test_filename)
     write_to_output(str(total_count))
-    handle_perplexity(ho_inst, lid_model, test_filename)
+    handle_perplexity(voc, total_count, ho_inst, lid_model)
     #
     generate_table(f_ho, n_t_r, t_r)
 
