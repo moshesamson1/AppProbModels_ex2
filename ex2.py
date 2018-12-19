@@ -106,9 +106,12 @@ def generate_table(ho_inst, lid_inst):
     f_lid = []
     #iterate over frequencies and create relevant list
     for r in range(0,10):
+        # f's are calculated as probabilty of given fr multiplied by train set size
         f_ho.append(ho_inst.calc_ho_probability("", r)*len(ho_inst.train_set))
         f_lid.append(lid_inst.calc_lid_probability_training("", lid_inst.get_argmin_lamda(), r)*lid_inst.get_training_set_size())
+        # tr is the nominator of held-outs formula
         t_r.append(ho_inst.calc_ho_nominator(r))
+        # number of words in given frequency
         n_t_r.append(len(ho_inst.train_fr.get(r, 0)))
     n_t_r[0] = VOC_SIZE - len(ho_inst.train_counter)
     for r in range(10):
@@ -135,7 +138,7 @@ def handle_heldout(dev_file, input_word, voc_size):
 
 def get_perplexity_lamda_argmin(devel_lid, dic, low, high, resolution=0.01):
     '''
-    return arg min lamda of perplexity in range 0-2
+    return arg min lambda of perplexity in range 0-2
     :param devel_lid: THe Lidstone model
     :param filename:
     :param low:
@@ -143,6 +146,7 @@ def get_perplexity_lamda_argmin(devel_lid, dic, low, high, resolution=0.01):
     :param resolution:
     :return:
     '''
+    # iterate over all possible lambdas - sort the list and select min val
     lamda_values = np.arange(low, high, resolution)
     results = [(
         calc_perplexity(dic, devel_lid.get_validation_set_size(), devel_lid.calc_lid_probability_training, lamda),
