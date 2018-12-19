@@ -4,7 +4,6 @@ import held_out as ho
 import utils as ul
 import math
 from Lidstone import *
-import re
 import numpy as np
 
 lines_counter = 1
@@ -13,11 +12,19 @@ output_filename = ""
 
 
 def create_output_file(filename):
+    '''
+    Initializes output file
+    :param filename: output's file name
+    '''
     f = open(filename, "w")
     f.write("#Students	Moshe Samson    Roni Chernyak  312297492   312676091" + '\n')
 
 
 def write_to_output(line):
+    '''
+    Writes given output to output file with current output number
+    :param line: output to write
+    '''
     global lines_counter
 
     f = open(output_filename, "a")
@@ -28,6 +35,11 @@ def write_to_output(line):
 
 
 def process_input_file_into_lines(filename):
+    '''
+    returns all relevant sentences
+    :param filename: develop file name
+    :return:
+    '''
     f = open(filename, 'r')
     f_lines = f.readlines()
     # get every third row
@@ -37,6 +49,11 @@ def process_input_file_into_lines(filename):
 
 
 def get_all_events(f_lines):
+    '''
+    returns list of all the words in file
+    :param f_lines:
+    :return:
+    '''
     flat_items = [word for line in f_lines for word in line.split()]
     return flat_items
 
@@ -44,10 +61,10 @@ def get_all_events(f_lines):
 def handle_perplexity(test_voc, test_total_events, ho_inst, lid_inst):
     """
     outputs perplexity over test set of each model and then outputs to file the best model
-    :param ho_inst:
-    :param lid:
-    :param test_fiename:
-    :return:
+    :param lid_inst: lidstone instance
+    :param test_total_events:  test_set's total events count
+    :param test_voc: test_set vocabulary
+    :param ho_inst: heldout instance
     """
     lid_perp = calc_perplexity(test_voc, test_total_events,
                                lid_inst.calc_lid_probability_training,
@@ -55,13 +72,16 @@ def handle_perplexity(test_voc, test_total_events, ho_inst, lid_inst):
     ho_perp = calc_perplexity(test_voc, test_total_events, ho_inst.calc_ho_probability)
     write_to_output(str(lid_perp))
     write_to_output(str(ho_perp))
-    write_to_output('L' if lid_perp > ho_perp else 'H')
+    write_to_output('L' if lid_perp < ho_perp else 'H')
 
 
 def calc_perplexity(voc, total_count, proba_func, lamda=None):
     '''
     Calculates models perplexity over given vocabulary with given total count of events
-    :param test_file:
+    :param lamda: if specified, passes lambda as a parameter to proba_func
+    :param proba_func: probability function to calculate perplexity with
+    :param voc: vocabulary for which perplexity will be calculated
+    :param total_count: vocabularies total events count (sum of all values)
     :return: calculated perplexity
     '''
     sum = 0
@@ -73,12 +93,26 @@ def calc_perplexity(voc, total_count, proba_func, lamda=None):
     return 2 ** (-sum / total_count)
 
 
-def generate_table(f_ho, n_t_r, t_r):
+def generate_table(ho_inst, lid_inst):
+    '''
+    Generates output 29.
+    :param ho_inst: instance of held-out model
+    :param lid_inst: instance of lidstone model
+    '''
     out = ""
+    t_r = []
+    n_t_r = []
+    f_ho = []
+    f_lid = []
+    #iterate over frequencies and create relevant list
+    for r in range(0,10):
+        f_ho.append(ho_inst.calc_ho_probability("", r)*len(ho_inst.train_set))
+        f_lid.append(lid_inst.calc_lid_probability_training("", lid_inst.get_argmin_lamda(), r))
+        t_r.append(ho_inst.calc_ho_nominator(r))
+        n_t_r.append(len(ho_inst.train_fr.get(r, 0)))
+    n_t_r[0] = VOC_SIZE - len(ho_inst.train_counter)
     for r in range(10):
-        # TODO: FILL LIDSTONE PARTS and use the first str
-        # out += f"\n\t{r}\t{lid_array[r]}\t{f_ho[r]:.5f}\t{n_t_r[r]}\t{t_r[r]}"
-        out += "\n\t{0}\t{1}\t{2:.5f}\t{3}\t{4}".format(r, "LID", f_ho[r], n_t_r[r], t_r[r])
+        out += "\n\t{0}\t{1:.5f}\t{2:.5f}\t{3}\t{4}".format(r, f_lid[r], f_ho[r], n_t_r[r], t_r[r])
     write_to_output(out)
 
 
@@ -91,20 +125,12 @@ def handle_heldout(dev_file, input_word, voc_size):
     :return: returns instance of helf_out, array with fH for each r value, ntr array and tr array
     """
     ho_inst = ho.HeldOut(dev_file, voc_size)
-    t_r = []
-    n_t_r = []
-    f_ho = []
-    for r in range(0,10):
-        f_ho.append(ho_inst.calc_ho_probability("", r)*len(ho_inst.train_set))
-        t_r.append(ho_inst.calc_ho_nominator(r))
-        n_t_r.append(len(ho_inst.train_fr.get(r, 0)))
-    n_t_r[0] = VOC_SIZE - len(ho_inst.train_counter)
     # write outputs - should start from out 21
     write_to_output(str(len(ho_inst.train_set)))  # output 21
     write_to_output(str(len(ho_inst.val_set)))  # output 22
     write_to_output(str(ho_inst.calc_ho_probability(input_word)))  # output 23
     write_to_output(str(ho_inst.calc_ho_probability("unseen-word")))  # output 24
-    return ho_inst, f_ho, n_t_r, t_r
+    return ho_inst
 
 
 def get_perplexity_lamda_argmin(devel_lid, dic, low, high, resolution=0.01):
@@ -125,7 +151,14 @@ def get_perplexity_lamda_argmin(devel_lid, dic, low, high, resolution=0.01):
     return sort_by_perplexity[0][1]
 
 
-def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
+def handle_Lidstone(devl_filename, input_word):
+    '''
+    outputs lidstone's outputs
+    :param devl_filename: develop file name
+    :param input_word: programs input word
+    :param VOC_SIZE: vocab's
+    :return: 
+    '''
     devel_f_lines = process_input_file_into_lines(devl_filename)
     devel_events = get_all_events(devel_f_lines)
     devel_lid = Lidstone(devel_events, VOC_SIZE)
@@ -161,12 +194,8 @@ def handle_Lidstone(devl_filename, input_word, VOC_SIZE):
 
 def main(args):
     global output_filename
-    # total_events = "300000"
     if len(args) == 5:
-        devl_filename = args[1]
-        test_filename = args[2]
-        input_word = args[3]
-        output_filename = args[4]
+        add, devl_filename, test_filename, input_word, output_filename = args
     else:
         print("Not enough arguments! Exiting...")
         exit(-1)
@@ -184,17 +213,17 @@ def main(args):
     write_to_output(str(len(events)))  # output 7
 
     # Lidstone model
-    lid_model = handle_Lidstone(devl_filename, input_word, VOC_SIZE)
+    lid_model = handle_Lidstone(devl_filename, input_word)
 
     # held out outs
-    ho_inst, f_ho, n_t_r, t_r = handle_heldout(devl_filename, input_word, VOC_SIZE)
-    #
-    # # test output
+    ho_inst = handle_heldout(devl_filename, input_word, VOC_SIZE)
+
+    # test output
     voc, total_count, articles_content = ul.pre_process_set(test_filename)
     write_to_output(str(total_count))
     handle_perplexity(voc, total_count, ho_inst, lid_model)
-    #
-    generate_table(f_ho, n_t_r, t_r)
+
+    generate_table(ho_inst, lid_model)
 
 
 if __name__ == "__main__":
