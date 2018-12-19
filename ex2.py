@@ -1,4 +1,4 @@
-# Moshe Samson <your name> 312297492 <your id>
+# Moshe Samson Roni Chernyak 312297492 312676091
 import sys
 import held_out as ho
 import utils as ul
