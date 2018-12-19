@@ -107,7 +107,7 @@ def generate_table(ho_inst, lid_inst):
     #iterate over frequencies and create relevant list
     for r in range(0,10):
         f_ho.append(ho_inst.calc_ho_probability("", r)*len(ho_inst.train_set))
-        f_lid.append(lid_inst.calc_lid_probability_training("", lid_inst.get_argmin_lamda(), r))
+        f_lid.append(lid_inst.calc_lid_probability_training("", lid_inst.get_argmin_lamda(), r)*lid_inst.get_training_set_size())
         t_r.append(ho_inst.calc_ho_nominator(r))
         n_t_r.append(len(ho_inst.train_fr.get(r, 0)))
     n_t_r[0] = VOC_SIZE - len(ho_inst.train_counter)

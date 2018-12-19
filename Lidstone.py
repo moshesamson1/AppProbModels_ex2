@@ -10,7 +10,7 @@ class Lidstone:
         :param events: all events from the develop file
         :param voc_size: assumed vocabulary size
         """
-        train_size = int(0.9*len(events))
+        train_size = int(0.9 * len(events))
         self.train_set = events[0:train_size]
         self.val_set = events[train_size:]
         self.voc_size = voc_size
@@ -35,7 +35,7 @@ class Lidstone:
 
     def get_mle_training(self, input_word):
         # compute mle
-        return self.dic_train.get(input_word,0) / float(self.get_training_set_size())
+        return self.dic_train.get(input_word, 0) / self.get_training_set_size()
 
     def get_training_events(self):
         return set(self.train_set)
@@ -43,7 +43,7 @@ class Lidstone:
     def get_argmin_lamda(self):
         return self.argmin_lamda
 
-    def calc_lid_probability_training(self, input_word, lamda, fr = None):
-        w_count = self.dic_train.get(input_word,0) if fr is None else fr
-        return float(w_count + lamda) / \
-               float(self.training_set_size + lamda * self.get_possible_events_amount())
+    def calc_lid_probability_training(self, input_word, lamda, fr=None):
+        w_count = self.dic_train.get(input_word, 0) if fr is None else fr
+        return (w_count + lamda) / \
+               (self.training_set_size + lamda * self.get_possible_events_amount())
