@@ -43,7 +43,7 @@ def get_all_events(f_lines):
 
 def handle_perplexity(test_voc, test_total_events, ho_inst, lid_inst):
     """
-    outputs perplexity of each model and then outputs to file the best model
+    outputs perplexity over test set of each model and then outputs to file the best model
     :param ho_inst:
     :param lid:
     :param test_fiename:
@@ -60,7 +60,7 @@ def handle_perplexity(test_voc, test_total_events, ho_inst, lid_inst):
 
 def calc_perplexity(voc, total_count, proba_func, lamda=None):
     '''
-    Calculates models perplexity over test set
+    Calculates models perplexity over given vocabulary with given total count of events
     :param test_file:
     :return: calculated perplexity
     '''
